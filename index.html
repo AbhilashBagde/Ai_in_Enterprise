@@ -403,7 +403,7 @@ const trendChart = new Chart(trendCtx, {
           align: 'top',
           color: BLUE,
           font: { size: 10, weight: '600' },
-          formatter: v => '€' + (v/1000).toFixed(0) + 'K'
+          formatter: v => '€' + (v/1000000).toFixed(2) + 'M'
         }
       },
       {
@@ -435,7 +435,7 @@ const trendChart = new Chart(trendCtx, {
           align: 'top',
           color: GREEN,
           font: { size: 10, weight: '600' },
-          formatter: v => '€' + (v/1000).toFixed(0) + 'K'
+          formatter: v => '€' + (v/1000000).toFixed(2) + 'M'
         }
       }
     ]
@@ -449,12 +449,12 @@ const trendChart = new Chart(trendCtx, {
         backgroundColor: '#1e293b',
         borderColor: '#334155',
         borderWidth: 1,
-        callbacks: { label: ctx => ` ${ctx.dataset.label}: €${(ctx.parsed.y/1000).toFixed(0)}K` }
+        callbacks: { label: ctx => ` ${ctx.dataset.label}: €${(ctx.parsed.y/1000000).toFixed(2)}M` }
       }
     },
     scales: {
       x: { grid: { color: GRID } },
-      y: { grid: { color: GRID }, ticks: { callback: v => '€'+(v/1000).toFixed(0)+'K' } }
+      y: { grid: { color: GRID }, ticks: { callback: v => '€'+(v/1000000).toFixed(1)+'M' } }
     }
   }
 });
@@ -479,7 +479,7 @@ new Chart(productCtx, {
         align: 'right',
         color: '#475569',
         font: { size: 10, weight: '600' },
-        formatter: v => '€' + (v/1000).toFixed(0) + 'K'
+        formatter: v => '€' + (v/1000000).toFixed(2) + 'M'
       }
     }]
   },
@@ -492,11 +492,11 @@ new Chart(productCtx, {
         backgroundColor: '#1e293b',
         borderColor: '#334155',
         borderWidth: 1,
-        callbacks: { label: ctx => ` €${(ctx.parsed.x/1000).toFixed(0)}K` }
+        callbacks: { label: ctx => ` €${(ctx.parsed.x/1000000).toFixed(2)}M` }
       }
     },
     scales: {
-      x: { grid: { color: GRID }, ticks: { callback: v => '€'+(v/1000).toFixed(0)+'K' } },
+      x: { grid: { color: GRID }, ticks: { callback: v => '€'+(v/1000000).toFixed(1)+'M' } },
       y: { grid: { display: false }, ticks: { font: { size: 10 } } }
     }
   }
