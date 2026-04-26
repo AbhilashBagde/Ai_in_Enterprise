@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muesli Market Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #f0f2f5;
+    color: #1e293b;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 28px 32px;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .header p {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 3px;
+  }
+  .header-right {
+    text-align: right;
+    font-size: 12px;
+    color: #94a3b8;
+    line-height: 1.7;
+  }
+  .header-right strong {
+    color: #475569;
+    display: block;
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+
+  /* FILTER BAR */
+  .filter-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+    background: #fff;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+  }
+  .filter-label {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-right: 6px;
+    font-weight: 500;
+  }
+  .filter-btn {
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 13px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+  .filter-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+
+  /* KPI CARDS */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px 22px;
+    border-top: 3px solid var(--kpi-color, #3b82f6);
+  }
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+  }
+  .kpi-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .kpi-sub {
+    font-size: 11px;
+    color: #94a3b8;
+  }
+
+  /* CHART GRID */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1.2fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 22px 24px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 3px;
+  }
+  .card-subtitle {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 18px;
+  }
+
+  /* REGION BARS */
+  .region-bars { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+  .region-top { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
+  .region-name { font-weight: 600; color: #334155; }
+  .region-val { color: #64748b; font-size: 11px; }
+  .region-track {
+    height: 7px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .region-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.9s ease;
+    width: 0;
+  }
+
+  /* MARGIN TABLE */
+  .margin-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .margin-table th {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    text-transform: uppercase;
+    padding: 0 0 10px 0;
+    text-align: left;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .margin-table th:not(:first-child) { text-align: right; }
+  .margin-table td {
+    padding: 8px 0;
+    border-bottom: 1px solid #f8fafc;
+    vertical-align: middle;
+    color: #334155;
+  }
+  .margin-table td:not(:first-child) { text-align: right; font-size: 11px; color: #64748b; }
+  .pct-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+  .pct-high { background: #dcfce7; color: #16a34a; }
+  .pct-mid  { background: #fef9c3; color: #a16207; }
+  .pct-low  { background: #ffedd5; color: #c2410c; }
+
+  /* NOTE BOX */
+  .agg-note {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #6366f1;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-top: 16px;
+  }
+  .agg-note h4 {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6366f1;
+    margin-bottom: 10px;
+  }
+  .agg-note .formula {
+    font-size: 12px;
+    color: #475569;
+    background: #f8fafc;
+    padding: 7px 12px;
+    border-radius: 6px;
+    margin: 5px 0;
+    line-height: 1.6;
+    font-family: 'Courier New', monospace;
+  }
+  .agg-note .formula strong { color: #6366f1; }
+
+  /* FOOTER */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 11px;
+    color: #94a3b8;
+  }
+  .footer .sources { display: flex; gap: 16px; }
+  .footer .sources span { color: #6366f1; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Muesli Market Analytics Dashboard</h1>
+    <p>SAP ERP · OData API Pipeline · Rounds 1–7 (20 days/round)</p>
+  </div>
+  <div class="header-right">
+    <strong>Data Sources</strong>
+    Detailed Sales Report · Summary Sales Order Report · Price Market Report
+  </div>
+</div>
+
+<div class="filter-bar">
+  <span class="filter-label">Filter by Round:</span>
+  <button class="filter-btn active" onclick="setFilter('all',this)">All Rounds</button>
+  <button class="filter-btn" onclick="setFilter(1,this)">R1</button>
+  <button class="filter-btn" onclick="setFilter(2,this)">R2</button>
+  <button class="filter-btn" onclick="setFilter(3,this)">R3</button>
+  <button class="filter-btn" onclick="setFilter(4,this)">R4</button>
+  <button class="filter-btn" onclick="setFilter(5,this)">R5</button>
+  <button class="filter-btn" onclick="setFilter(6,this)">R6</button>
+  <button class="filter-btn" onclick="setFilter(7,this)">R7</button>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi-card" style="--kpi-color:#3b82f6">
+    <div class="kpi-label">Total Revenue</div>
+    <div class="kpi-value" id="kpi-rev">€7.45M</div>
+    <div class="kpi-sub">SUM(Net Value) across all records</div>
+  </div>
+  <div class="kpi-card" style="--kpi-color:#8b5cf6">
+    <div class="kpi-label">Units Sold</div>
+    <div class="kpi-value" id="kpi-qty">1.68M</div>
+    <div class="kpi-sub">SUM(Quantity) · all SKUs</div>
+  </div>
+  <div class="kpi-card" style="--kpi-color:#f59e0b">
+    <div class="kpi-label">Avg Selling Price</div>
+    <div class="kpi-value" id="kpi-asp">€4.44</div>
+    <div class="kpi-sub">Revenue ÷ Units Sold</div>
+  </div>
+  <div class="kpi-card" style="--kpi-color:#10b981">
+    <div class="kpi-label">Gross Margin</div>
+    <div class="kpi-value" id="kpi-margin">69.8%</div>
+    <div class="kpi-sub">(Revenue − COGS) ÷ Revenue</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">Revenue & Profit by Round</div>
+    <div class="card-subtitle">Revenue vs COGS per round with gross profit trend line</div>
+    <canvas id="trendChart" height="180"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">Product Revenue Ranking</div>
+    <div class="card-subtitle">Total revenue per SKU, sorted high to low</div>
+    <canvas id="productChart" height="180"></canvas>
+  </div>
+</div>
+
+<div class="grid-3">
+  <div class="card">
+    <div class="card-title">Gross Margin by Product</div>
+    <div class="card-subtitle">Top 9 SKUs ranked by margin — highlights pricing efficiency</div>
+    <table class="margin-table" id="marginTable"></table>
+  </div>
+  <div class="card">
+    <div class="card-title">Revenue by Region</div>
+    <div class="card-subtitle">North / South / West breakdown</div>
+    <div class="region-bars" id="regionBars"></div>
+    <div style="margin-top:20px"><canvas id="regionDonut" height="140"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Volume vs Margin Mix</div>
+    <div class="card-subtitle">Bubble size = total revenue · X = avg price · Y = margin</div>
+    <canvas id="mixChart" height="290"></canvas>
+  </div>
+</div>
+
+<div class="agg-note">
+  <h4>OData API Aggregation Logic</h4>
+  <div class="formula"><strong>Daily Revenue</strong> = GET /sap/opu/odata/sap/SD_SALES → filter(Day=X, Round=Y) → SUM(NetValue)</div>
+  <div class="formula"><strong>Gross Margin %</strong> = ( SUM(Value) − SUM(Cost) ) ÷ SUM(Value) × 100 — Cost sourced from MM module COGS field</div>
+  <div class="formula"><strong>Avg Selling Price</strong> = SUM(Value) ÷ SUM(Quantity) — transaction-level price rolled up through pipeline</div>
+  <div class="formula"><strong>Note:</strong> SAP standard reports show static per-round snapshots. This dashboard aggregates raw OData transactions to expose intra-round daily trends not visible in standard ERP views.</div>
+</div>
+
+<div class="footer">
+  <div>Muesli Market Simulation · MLOps Analytics Team</div>
+  <div class="sources">
+    <div>Source: <span>Detailed_Sales_report.xlsx</span></div>
+    <div>Source: <span>Summary_Sales_Order_Report.xlsx</span></div>
+    <div>Source: <span>Price_Market_Report.xlsx</span></div>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  revByRound:  {1:1504607.85, 2:999017.10, 3:1225936.46, 4:1064216.04, 5:1028122.96, 6:1154189.93, 7:477150.97},
+  costByRound: {1:505330.18,  2:302758.52, 3:316369.60,  4:291463.15,  5:310731.79,  6:368703.09,  7:156738.67},
+  revByProduct: {
+    "500g Nut Muesli":1664546,"1kg Raisin Muesli":832610,"1kg Strawberry Muesli":829513,
+    "1kg Nut Muesli":796517,"1kg Blueberry Muesli":786011,"500g Strawberry Muesli":643321,
+    "500g Blueberry Muesli":568807,"500g Raisin Muesli":562558,"500g Mixed Fruit Muesli":239353,
+    "1kg Mixed Fruit Muesli":187520,"500g Original Muesli":184297,"1kg Original Muesli":158187
+  },
+  costByProduct: {
+    "500g Nut Muesli":387000,"1kg Raisin Muesli":219620,"1kg Strawberry Muesli":360240,
+    "1kg Nut Muesli":255960,"1kg Blueberry Muesli":322340,"500g Strawberry Muesli":186960,
+    "500g Blueberry Muesli":167895,"500g Raisin Muesli":120080,"500g Mixed Fruit Muesli":72320,
+    "1kg Mixed Fruit Muesli":66240,"500g Original Muesli":49920,"1kg Original Muesli":43520
+  },
+  qtyByProduct: {
+    "500g Nut Muesli":430000,"1kg Raisin Muesli":158000,"1kg Strawberry Muesli":158000,
+    "1kg Nut Muesli":158000,"1kg Blueberry Muesli":142000,"500g Strawberry Muesli":152000,
+    "500g Blueberry Muesli":136500,"500g Raisin Muesli":152000,"500g Mixed Fruit Muesli":64000,
+    "1kg Mixed Fruit Muesli":32000,"500g Original Muesli":64000,"1kg Original Muesli":32000
+  },
+  revByArea: {North:2759637, West:1714630, South:2978975}
+};
+
+const RAW_ROUNDS = {
+  1:{rev:1504607.85,cost:505330.18,qty:428000},
+  2:{rev:999017.10, cost:302758.52,qty:218000},
+  3:{rev:1225936.46,cost:316369.60,qty:291000},
+  4:{rev:1064216.04,cost:291463.15,qty:260000},
+  5:{rev:1028122.96,cost:310731.79,qty:245000},
+  6:{rev:1154189.93,cost:368703.09,qty:200000},
+  7:{rev:477150.97, cost:156738.67,qty:36500}
+};
+
+const BLUE   = '#3b82f6';
+const PURPLE = '#8b5cf6';
+const AMBER  = '#f59e0b';
+const GREEN  = '#10b981';
+const RED    = '#ef4444';
+const SLATE  = '#64748b';
+const GRID   = 'rgba(226,232,240,0.8)';
+
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 11;
+
+// Trend Chart
+const trendCtx = document.getElementById('trendChart').getContext('2d');
+const trendChart = new Chart(trendCtx, {
+  type: 'bar',
+  data: {
+    labels: ['R1','R2','R3','R4','R5','R6','R7'],
+    datasets: [
+      {
+        label: 'Revenue',
+        data: Object.values(DATA.revByRound),
+        backgroundColor: 'rgba(59,130,246,0.15)',
+        borderColor: BLUE,
+        borderWidth: 2,
+        borderRadius: 5,
+        borderSkipped: false,
+        order: 2
+      },
+      {
+        label: 'COGS',
+        data: Object.values(DATA.costByRound),
+        backgroundColor: 'rgba(239,68,68,0.12)',
+        borderColor: RED,
+        borderWidth: 2,
+        borderRadius: 5,
+        borderSkipped: false,
+        order: 3
+      },
+      {
+        label: 'Gross Profit',
+        data: Object.keys(DATA.revByRound).map(k => DATA.revByRound[k] - DATA.costByRound[k]),
+        type: 'line',
+        borderColor: GREEN,
+        backgroundColor: 'rgba(16,185,129,0.05)',
+        borderWidth: 2,
+        pointBackgroundColor: GREEN,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: false,
+        tension: 0.35,
+        order: 1
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { labels: { usePointStyle: true, pointStyle: 'circle', padding: 16 } },
+      tooltip: {
+        backgroundColor: '#1e293b',
+        borderColor: '#334155',
+        borderWidth: 1,
+        callbacks: { label: ctx => ` ${ctx.dataset.label}: €${(ctx.parsed.y/1000).toFixed(0)}K` }
+      }
+    },
+    scales: {
+      x: { grid: { color: GRID } },
+      y: { grid: { color: GRID }, ticks: { callback: v => '€'+(v/1000).toFixed(0)+'K' } }
+    }
+  }
+});
+
+// Product Bar
+const prods = Object.keys(DATA.revByProduct);
+const prodRevs = Object.values(DATA.revByProduct);
+const productCtx = document.getElementById('productChart').getContext('2d');
+new Chart(productCtx, {
+  type: 'bar',
+  data: {
+    labels: prods.map(p => p.replace(' Muesli','')),
+    datasets: [{
+      label: 'Revenue',
+      data: prodRevs,
+      backgroundColor: prods.map((_,i) => i === 0 ? BLUE : i === 1 ? PURPLE : i === 2 ? AMBER : 'rgba(59,130,246,0.25)'),
+      borderColor: 'transparent',
+      borderRadius: 4,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1e293b',
+        borderColor: '#334155',
+        borderWidth: 1,
+        callbacks: { label: ctx => ` €${(ctx.parsed.x/1000).toFixed(0)}K` }
+      }
+    },
+    scales: {
+      x: { grid: { color: GRID }, ticks: { callback: v => '€'+(v/1000).toFixed(0)+'K' } },
+      y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// Region bars
+const totalAreaRev = Object.values(DATA.revByArea).reduce((a,b) => a+b, 0);
+const areaColors = { North: BLUE, South: PURPLE, West: AMBER };
+const regionContainer = document.getElementById('regionBars');
+Object.entries(DATA.revByArea).sort((a,b) => b[1]-a[1]).forEach(([area, rev]) => {
+  const pct = (rev / totalAreaRev * 100).toFixed(1);
+  const div = document.createElement('div');
+  div.innerHTML = `
+    <div class="region-top">
+      <span class="region-name">${area}</span>
+      <span class="region-val">€${(rev/1000000).toFixed(2)}M · ${pct}%</span>
+    </div>
+    <div class="region-track">
+      <div class="region-fill" style="background:${areaColors[area]}" data-pct="${pct}"></div>
+    </div>`;
+  regionContainer.appendChild(div);
+});
+setTimeout(() => {
+  document.querySelectorAll('.region-fill').forEach(el => { el.style.width = el.dataset.pct + '%'; });
+}, 250);
+
+// Region donut
+const donutCtx = document.getElementById('regionDonut').getContext('2d');
+new Chart(donutCtx, {
+  type: 'doughnut',
+  data: {
+    labels: Object.keys(DATA.revByArea),
+    datasets: [{
+      data: Object.values(DATA.revByArea),
+      backgroundColor: [BLUE, PURPLE, AMBER],
+      borderColor: '#fff',
+      borderWidth: 3,
+      hoverOffset: 5
+    }]
+  },
+  options: {
+    cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12 } },
+      tooltip: {
+        backgroundColor: '#1e293b',
+        borderColor: '#334155',
+        borderWidth: 1,
+        callbacks: { label: ctx => ` €${(ctx.parsed/1000000).toFixed(2)}M` }
+      }
+    }
+  }
+});
+
+// Bubble / mix chart
+const mixCtx = document.getElementById('mixChart').getContext('2d');
+const topProds = prods.slice(0, 8);
+const bubbleColors = [BLUE, PURPLE, AMBER, RED, GREEN, '#f97316', '#06b6d4', '#a855f7'];
+new Chart(mixCtx, {
+  type: 'bubble',
+  data: {
+    datasets: topProds.map((p, i) => {
+      const rev = DATA.revByProduct[p];
+      const cost = DATA.costByProduct[p];
+      const qty = DATA.qtyByProduct[p];
+      const margin = (rev - cost) / rev * 100;
+      const asp = rev / qty;
+      return {
+        label: p.replace(' Muesli',''),
+        data: [{ x: asp, y: margin, r: Math.sqrt(rev / 1000000) * 9 }],
+        backgroundColor: bubbleColors[i] + '40',
+        borderColor: bubbleColors[i],
+        borderWidth: 1.5
+      };
+    })
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { labels: { usePointStyle: true, pointStyle: 'circle', font: { size: 10 }, padding: 8 } },
+      tooltip: {
+        backgroundColor: '#1e293b',
+        borderColor: '#334155',
+        borderWidth: 1,
+        callbacks: {
+          label: ctx => [
+            ` ${ctx.dataset.label}`,
+            ` ASP: €${ctx.parsed.x.toFixed(2)}`,
+            ` Margin: ${ctx.parsed.y.toFixed(1)}%`
+          ]
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: GRID },
+        title: { display: true, text: 'Avg Selling Price (€)', color: SLATE },
+        ticks: { callback: v => '€' + v.toFixed(2) }
+      },
+      y: {
+        grid: { color: GRID },
+        title: { display: true, text: 'Gross Margin %', color: SLATE },
+        ticks: { callback: v => v + '%' }
+      }
+    }
+  }
+});
+
+// Margin table
+const table = document.getElementById('marginTable');
+table.innerHTML = `<tr><th>Product</th><th>Revenue</th><th>COGS</th><th>Margin</th></tr>`;
+const sortedByMargin = [...prods].sort((a, b) => {
+  const mA = (DATA.revByProduct[a] - DATA.costByProduct[a]) / DATA.revByProduct[a];
+  const mB = (DATA.revByProduct[b] - DATA.costByProduct[b]) / DATA.revByProduct[b];
+  return mB - mA;
+}).slice(0, 9);
+
+sortedByMargin.forEach(p => {
+  const rev = DATA.revByProduct[p];
+  const cost = DATA.costByProduct[p];
+  const margin = ((rev - cost) / rev * 100).toFixed(1);
+  const cls = margin >= 75 ? 'pct-high' : margin >= 65 ? 'pct-mid' : 'pct-low';
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="font-size:11px;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.replace(' Muesli','')}</td>
+    <td>€${(rev/1000).toFixed(0)}K</td>
+    <td>€${(cost/1000).toFixed(0)}K</td>
+    <td><span class="pct-pill ${cls}">${margin}%</span></td>`;
+  table.appendChild(tr);
+});
+
+// Filter
+function setFilter(round, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  let rev, cost, qty;
+  if (round === 'all') {
+    rev  = Object.values(RAW_ROUNDS).reduce((a,r) => a+r.rev, 0);
+    cost = Object.values(RAW_ROUNDS).reduce((a,r) => a+r.cost, 0);
+    qty  = Object.values(RAW_ROUNDS).reduce((a,r) => a+r.qty, 0);
+  } else {
+    const r = RAW_ROUNDS[round];
+    rev = r.rev; cost = r.cost; qty = r.qty;
+  }
+  const margin = ((rev - cost) / rev * 100).toFixed(1);
+
+  document.getElementById('kpi-rev').textContent    = rev >= 1e6 ? '€'+(rev/1e6).toFixed(2)+'M' : '€'+(rev/1e3).toFixed(0)+'K';
+  document.getElementById('kpi-qty').textContent    = qty >= 1e6 ? (qty/1e6).toFixed(2)+'M' : (qty/1e3).toFixed(0)+'K';
+  document.getElementById('kpi-asp').textContent    = '€'+(rev/qty).toFixed(2);
+  document.getElementById('kpi-margin').textContent = margin + '%';
+
+  if (round !== 'all') {
+    const idx = parseInt(round) - 1;
+    trendChart.data.datasets[0].backgroundColor = trendChart.data.datasets[0].data.map((_,i) =>
+      i === idx ? 'rgba(59,130,246,0.6)' : 'rgba(59,130,246,0.1)'
+    );
+    trendChart.update();
+  } else {
+    trendChart.data.datasets[0].backgroundColor = Array(7).fill('rgba(59,130,246,0.15)');
+    trendChart.update();
+  }
+}
+</script>
+</body>
+</html>
