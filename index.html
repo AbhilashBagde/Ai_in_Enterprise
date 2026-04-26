@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Muesli Market Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -376,6 +377,7 @@ const RED    = '#ef4444';
 const SLATE  = '#64748b';
 const GRID   = 'rgba(226,232,240,0.8)';
 
+Chart.register(ChartDataLabels);
 Chart.defaults.color = '#94a3b8';
 Chart.defaults.font.family = "'Inter', sans-serif";
 Chart.defaults.font.size = 11;
@@ -395,7 +397,14 @@ const trendChart = new Chart(trendCtx, {
         borderWidth: 2,
         borderRadius: 5,
         borderSkipped: false,
-        order: 2
+        order: 2,
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          color: BLUE,
+          font: { size: 10, weight: '600' },
+          formatter: v => '€' + (v/1000).toFixed(0) + 'K'
+        }
       },
       {
         label: 'COGS',
@@ -405,7 +414,8 @@ const trendChart = new Chart(trendCtx, {
         borderWidth: 2,
         borderRadius: 5,
         borderSkipped: false,
-        order: 3
+        order: 3,
+        datalabels: { display: false }
       },
       {
         label: 'Gross Profit',
@@ -419,7 +429,14 @@ const trendChart = new Chart(trendCtx, {
         pointHoverRadius: 6,
         fill: false,
         tension: 0.35,
-        order: 1
+        order: 1,
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          color: GREEN,
+          font: { size: 10, weight: '600' },
+          formatter: v => '€' + (v/1000).toFixed(0) + 'K'
+        }
       }
     ]
   },
@@ -456,7 +473,14 @@ new Chart(productCtx, {
       backgroundColor: prods.map((_,i) => i === 0 ? BLUE : i === 1 ? PURPLE : i === 2 ? AMBER : 'rgba(59,130,246,0.25)'),
       borderColor: 'transparent',
       borderRadius: 4,
-      borderSkipped: false
+      borderSkipped: false,
+      datalabels: {
+        anchor: 'end',
+        align: 'right',
+        color: '#475569',
+        font: { size: 10, weight: '600' },
+        formatter: v => '€' + (v/1000).toFixed(0) + 'K'
+      }
     }]
   },
   options: {
@@ -516,6 +540,7 @@ new Chart(donutCtx, {
   options: {
     cutout: '65%',
     plugins: {
+      datalabels: { display: false },
       legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12 } },
       tooltip: {
         backgroundColor: '#1e293b',
@@ -552,6 +577,7 @@ new Chart(mixCtx, {
   options: {
     responsive: true,
     plugins: {
+      datalabels: { display: false },
       legend: { labels: { usePointStyle: true, pointStyle: 'circle', font: { size: 10 }, padding: 8 } },
       tooltip: {
         backgroundColor: '#1e293b',
